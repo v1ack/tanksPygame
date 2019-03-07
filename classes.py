@@ -1,12 +1,15 @@
 import pygame
 import random
 
-bullets = pygame.sprite.Group()
+bullets_group = pygame.sprite.Group()
+tanks_group = pygame.sprite.Group()
+tanks_enemies = pygame.sprite.Group()
+blocks_group = pygame.sprite.Group()
 
 
 class Block(pygame.sprite.Sprite):
     def __init__(self):
-        super().__init__()
+        super().__init__(blocks_group)
         self.image = None
         self.hp = None
 
@@ -38,8 +41,8 @@ class Iron(Block):
 
 
 class Tank(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
+    def __init__(self, x, y, *groups):
+        super().__init__(tanks_group, groups)
         self.image = pygame.image.load('tank_c.png')
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -55,7 +58,7 @@ class Tank(pygame.sprite.Sprite):
 
 class TankEnemy(Tank):
     def __init__(self, x, y):
-        super().__init__(x, y)
+        super().__init__(x, y, tanks_enemies)
         self.speed = random.randrange(5, 10)
 
     def update(self):
@@ -87,24 +90,17 @@ class TankEnemy(Tank):
             now = pygame.time.get_ticks()
             if now - self.last_shot > self.cooldown:
                 self.last_shot = now
-                bullets.add(Bullet(self.rect.x + 10, self.rect.y + 10, self.direction))
+                Bullet(self.rect.x + 10, self.rect.y + 10, self.direction)
         self.rect.x += speed_x
         self.rect.y += speed_y
 
 
-class PlayerTank(pygame.sprite.Sprite):
+class PlayerTank(Tank):
     def __init__(self, x, y):
-        super().__init__()
+        super().__init__(x, y)
         self.image = pygame.image.load('tank_p.png')
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
         self.hp = None
         self.speed = 10
-        self.move_available = {'up': True, 'down': True, 'left': True, 'right': True}
-        self.direction = 'up'
-        self.directions = {'up': 0, 'right': 270, 'down': 180, 'left': 90}
-        self.last_shot = 0
         self.cooldown = 500
 
     def update(self):
@@ -134,14 +130,14 @@ class PlayerTank(pygame.sprite.Sprite):
             now = pygame.time.get_ticks()
             if now - self.last_shot > self.cooldown:
                 self.last_shot = now
-                bullets.add(Bullet(self.rect.x + 10, self.rect.y + 10, self.direction))
+                Bullet(self.rect.x + 10, self.rect.y + 10, self.direction)
         self.rect.x += speed_x
         self.rect.y += speed_y
 
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
-        super().__init__()
+        super().__init__(bullets_group)
         self.image = pygame.image.load('bullet2.png')
         self.rect = self.image.get_rect()
         self.rect.x = x

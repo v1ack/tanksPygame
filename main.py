@@ -6,26 +6,23 @@ pygame.init()
 
 WIDTH, HEIGHT = 800, 600
 
-
 if __name__ == '__main__':
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("TANKI")
     clock = pygame.time.Clock()
     sprites = pygame.sprite.Group()
-    enemes = pygame.sprite.Group()
-    sprites_blocks, player, enemes = open_map('map1')
+    player = open_map('map1')
     sprites.add(player)
-    # sprites_blocks.add(Bricks(100, 200), Bricks(32, 0), Bricks(64, 0))
-    sprites.add(sprites_blocks)
-    sprites.add(enemes)
+    sprites.add(blocks_group)
+    sprites.add(tanks_enemies)
 
     while True:
-        for bullet in bullets:
-            bullets_hit = pygame.sprite.spritecollide(bullet, sprites_blocks, False)
+        for bullet in bullets_group:
+            bullets_hit = pygame.sprite.spritecollide(bullet, blocks_group, False)
             if len(bullets_hit):
                 bullet.kill()
                 bullets_hit[0].shot()
-        blocks_hit_list = pygame.sprite.spritecollide(player, sprites_blocks, False)
+        blocks_hit_list = pygame.sprite.spritecollide(player, blocks_group, False)
         player.move_available = {'up': True, 'down': True, 'left': True, 'right': True}
         if blocks_hit_list:
             for i in blocks_hit_list:
@@ -50,7 +47,7 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 sys.exit()
 
-        sprites.add(bullets)
+        sprites.add(bullets_group)
         screen.fill((0, 0, 0))
         sprites.draw(screen)
         sprites.update()
