@@ -1,6 +1,7 @@
 import pygame
 import random
 
+clock = pygame.time.Clock()
 bullets_group = pygame.sprite.Group()
 tanks_group = pygame.sprite.Group()
 tanks_enemies = pygame.sprite.Group()
@@ -50,10 +51,40 @@ class Tank(pygame.sprite.Sprite):
         self.hp = 10
         self.speed = 1
         self.move_available = {'up': True, 'down': True, 'left': True, 'right': True}
+        self.move_available_last = {'up': 0, 'down': 0, 'left': 0, 'right': 0}
+        self.move_cooldown = 500
         self.direction = 'up'
         self.directions = {'up': 0, 'right': 270, 'down': 180, 'left': 90}
         self.last_shot = 0
         self.cooldown = 500
+
+    def update(self):
+        # return
+        # clock.tick(30)
+        # move_available = {'up': True, 'down': True, 'left': True, 'right': True}
+        now = pygame.time.get_ticks()
+        blocks_hit_list = pygame.sprite.spritecollide(self, blocks_group, False)
+        if blocks_hit_list:
+            for i in blocks_hit_list:
+                if not (i.rect.x + 32 < self.rect.x or i.rect.x > self.rect.x + 32) \
+                        and 16 < self.rect.y - i.rect.y <= 32:
+                    self.move_available_last['up'] = now
+                    self.rect.y += 32 - self.rect.y + i.rect.y
+                if not (i.rect.x + 32 < self.rect.x or i.rect.x > self.rect.x + 32) \
+                        and -16 > self.rect.y - i.rect.y >= -32:
+                    self.move_available_last['down'] = now
+                    self.rect.y -= self.rect.y - i.rect.y + 32
+                if not (i.rect.y + 32 < self.rect.y or i.rect.y > self.rect.y + 32) \
+                        and 16 < self.rect.x - i.rect.x <= 32:
+                    self.move_available_last['left'] = now
+                    self.rect.x += 32 - self.rect.x + i.rect.x
+                if not (i.rect.y + 32 < self.rect.y or i.rect.y > self.rect.y + 32) \
+                        and -16 > self.rect.x - i.rect.x >= -32:
+                    self.move_available_last['right'] = now
+                    self.rect.x -= self.rect.x - i.rect.x + 32
+
+        self.move_available = {i: True if now - self.move_available_last[i] > self.move_cooldown else False for i in
+                               self.move_available.keys()}
 
 
 class TankEnemy(Tank):
@@ -62,6 +93,7 @@ class TankEnemy(Tank):
         self.speed = random.randrange(5, 10)
 
     def update(self):
+        super().update()
         variants = ['left', 'right', 'up', 'down', 'space']
         random.shuffle(variants)
         key_state = variants[0]
@@ -104,6 +136,7 @@ class PlayerTank(Tank):
         self.cooldown = 500
 
     def update(self):
+        super().update()
         key_state = pygame.key.get_pressed()
         speed_x, speed_y = 0, 0
         if key_state[pygame.K_LEFT] and self.move_available['left']:
