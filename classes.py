@@ -1,16 +1,21 @@
 import pygame
 import random
+from os import path
+
+assets_dir = path.join(path.dirname(__file__), 'assets')
 
 clock = pygame.time.Clock()
 bullets_group = pygame.sprite.Group()
 tanks_group = pygame.sprite.Group()
 tanks_enemies = pygame.sprite.Group()
 blocks_group = pygame.sprite.Group()
+sprites = pygame.sprite.Group()
+player = pygame.sprite.Group()
 
 
 class Block(pygame.sprite.Sprite):
     def __init__(self):
-        super().__init__(blocks_group)
+        super().__init__(blocks_group, sprites)
         self.image = None
         self.hp = None
 
@@ -25,7 +30,7 @@ class Bricks(Block):
     def __init__(self, x, y):
         super().__init__()
         self.hp = 1
-        self.image = pygame.image.load('bricks.png')
+        self.image = pygame.image.load(path.join(assets_dir, 'bricks.png'))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -35,7 +40,7 @@ class Iron(Block):
     def __init__(self, x, y):
         super().__init__()
         self.hp = 100
-        self.image = pygame.image.load('iron.png')
+        self.image = pygame.image.load(path.join(assets_dir, 'iron.png'))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -43,25 +48,25 @@ class Iron(Block):
 
 class Tank(pygame.sprite.Sprite):
     def __init__(self, x, y, *groups):
-        super().__init__(tanks_group, groups)
-        self.image = pygame.image.load('tank_c.png')
+        super().__init__(tanks_group, sprites, groups)
+        self.image = pygame.image.load(path.join(assets_dir, 'tank_c.png'))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.hp = 10
+        self.hp = 2
         self.speed = 1
         self.move_available = {'up': True, 'down': True, 'left': True, 'right': True}
         self.move_available_last = {'up': 0, 'down': 0, 'left': 0, 'right': 0}
         self.move_cooldown = 500
         self.direction = 'up'
-        self.directions = {'up': 0, 'right': 270, 'down': 180, 'left': 90}
+        self.directions = {'left': {'up': 270, 'right': 180, 'down': 90, 'left': 0},
+                           'right': {'up': 90, 'right': 0, 'down': 270, 'left': 180},
+                           'up': {'up': 0, 'right': 270, 'down': 180, 'left': 90},
+                           'down': {'up': 180, 'right': 90, 'down': 0, 'left': 270}}
         self.last_shot = 0
         self.cooldown = 500
 
     def update(self):
-        # return
-        # clock.tick(30)
-        # move_available = {'up': True, 'down': True, 'left': True, 'right': True}
         now = pygame.time.get_ticks()
         blocks_hit_list = pygame.sprite.spritecollide(self, blocks_group, False)
         if blocks_hit_list:
@@ -86,6 +91,11 @@ class Tank(pygame.sprite.Sprite):
         self.move_available = {i: True if now - self.move_available_last[i] > self.move_cooldown else False for i in
                                self.move_available.keys()}
 
+    def get_shot(self):
+        self.hp -= 1
+        if self.hp <= 0:
+            self.kill()
+
 
 class TankEnemy(Tank):
     def __init__(self, x, y):
@@ -100,24 +110,20 @@ class TankEnemy(Tank):
         speed_x, speed_y = 0, 0
         if key_state == 'left' and self.move_available['left']:
             speed_x = -self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['left'])
             self.direction = 'left'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 270, 'right': 180, 'down': 90, 'left': 0}
         elif key_state == 'right' and self.move_available['right']:
             speed_x = self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['right'])
             self.direction = 'right'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 90, 'right': 0, 'down': 270, 'left': 180}
         elif key_state == 'up' and self.move_available['up']:
             speed_y = -self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['up'])
             self.direction = 'up'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 0, 'right': 270, 'down': 180, 'left': 90}
         elif key_state == 'down' and self.move_available['down']:
             speed_y = self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['down'])
             self.direction = 'down'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 180, 'right': 90, 'down': 0, 'left': 270}
         elif key_state == 'space':
             now = pygame.time.get_ticks()
             if now - self.last_shot > self.cooldown:
@@ -129,9 +135,9 @@ class TankEnemy(Tank):
 
 class PlayerTank(Tank):
     def __init__(self, x, y):
-        super().__init__(x, y)
-        self.image = pygame.image.load('tank_p.png')
-        self.hp = None
+        super().__init__(x, y, player)
+        self.image = pygame.image.load(path.join(assets_dir, 'tank_p.png'))
+        self.hp = 3
         self.speed = 10
         self.cooldown = 500
 
@@ -141,24 +147,20 @@ class PlayerTank(Tank):
         speed_x, speed_y = 0, 0
         if key_state[pygame.K_LEFT] and self.move_available['left']:
             speed_x = -self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['left'])
             self.direction = 'left'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 270, 'right': 180, 'down': 90, 'left': 0}
-        elif key_state[pygame.K_RIGHT] and self.move_available['right']:
+        if key_state[pygame.K_RIGHT] and self.move_available['right']:
             speed_x = self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['right'])
             self.direction = 'right'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 90, 'right': 0, 'down': 270, 'left': 180}
-        elif key_state[pygame.K_UP] and self.move_available['up']:
+        if key_state[pygame.K_UP] and self.move_available['up']:
             speed_y = -self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['up'])
             self.direction = 'up'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 0, 'right': 270, 'down': 180, 'left': 90}
-        elif key_state[pygame.K_DOWN] and self.move_available['down']:
+        if key_state[pygame.K_DOWN] and self.move_available['down']:
             speed_y = self.speed
+            self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['down'])
             self.direction = 'down'
-            self.image = pygame.transform.rotate(self.image, self.directions[self.direction])
-            self.directions = {'up': 180, 'right': 90, 'down': 0, 'left': 270}
         elif key_state[pygame.K_SPACE]:
             now = pygame.time.get_ticks()
             if now - self.last_shot > self.cooldown:
@@ -170,13 +172,14 @@ class PlayerTank(Tank):
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
-        super().__init__(bullets_group)
-        self.image = pygame.image.load('bullet2.png')
+        super().__init__(bullets_group, sprites)
+        self.image = pygame.image.load(path.join(assets_dir, 'bullet2.png'))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.speed = 15
         self.direction = direction
+        self.appear = pygame.time.get_ticks()
 
     def update(self):
         if self.direction == 'up':
