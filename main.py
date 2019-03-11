@@ -9,7 +9,7 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode((800, 600))
     pygame.display.set_caption("TANKI")
     clock = pygame.time.Clock()
-    open_map(path.join(assets_dir, 'map3'))
+    open_map(path.join(assets_dir, 'map2'))
 
     while True:
         clock.tick(30)

@@ -140,34 +140,43 @@ class PlayerTank(Tank):
         self.hp = 3
         self.speed = 10
         self.cooldown = 500
+        self.control = {'up': pygame.K_UP, 'down': pygame.K_DOWN, 'left': pygame.K_LEFT, 'right': pygame.K_RIGHT,
+                        'shot': pygame.K_SPACE}
 
     def update(self):
         super().update()
         key_state = pygame.key.get_pressed()
         speed_x, speed_y = 0, 0
-        if key_state[pygame.K_LEFT] and self.move_available['left']:
+        if key_state[self.control['left']] and self.move_available['left']:
             speed_x = -self.speed
             self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['left'])
             self.direction = 'left'
-        if key_state[pygame.K_RIGHT] and self.move_available['right']:
+        if key_state[self.control['right']] and self.move_available['right']:
             speed_x = self.speed
             self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['right'])
             self.direction = 'right'
-        if key_state[pygame.K_UP] and self.move_available['up']:
+        if key_state[self.control['up']] and self.move_available['up']:
             speed_y = -self.speed
             self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['up'])
             self.direction = 'up'
-        if key_state[pygame.K_DOWN] and self.move_available['down']:
+        if key_state[self.control['down']] and self.move_available['down']:
             speed_y = self.speed
             self.image = pygame.transform.rotate(self.image, self.directions[self.direction]['down'])
             self.direction = 'down'
-        elif key_state[pygame.K_SPACE]:
+        elif key_state[self.control['shot']]:
             now = pygame.time.get_ticks()
             if now - self.last_shot > self.cooldown:
                 self.last_shot = now
                 Bullet(self.rect.x + 10, self.rect.y + 10, self.direction)
         self.rect.x += speed_x
         self.rect.y += speed_y
+
+
+class PlayerTank2(PlayerTank):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.control = self.control = {'up': pygame.K_w, 'down': pygame.K_s, 'left': pygame.K_a, 'right': pygame.K_d,
+                                       'shot': pygame.K_q}
 
 
 class Bullet(pygame.sprite.Sprite):

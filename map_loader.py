@@ -13,5 +13,7 @@ def open_map(map_name):
                     Bricks(j * 32, i * 32)
                 if map_struct[i][j] == 'p':
                     PlayerTank(j * 32, i * 32)
+                if map_struct[i][j] == 'p2':
+                    PlayerTank2(j * 32, i * 32)
                 if map_struct[i][j] == 'e':
                     TankEnemy(j * 32, i * 32)
