@@ -199,3 +199,12 @@ class Bullet(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         elif self.direction == 'right':
             self.rect.x += self.speed
+
+
+def draw_text(surf, text, size, x, y, font_name):
+    ## selecting a cross platform font to display the score
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, (255, 255, 255))  ## True denotes the font to be anti-aliased
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
