@@ -1,7 +1,7 @@
 import sys
 from classes import *
 from map_loader import open_map
-from os import path
+from os import path, listdir
 
 pygame.init()
 
@@ -15,9 +15,9 @@ class Game:
         self.clock = pygame.time.Clock()
         self.font_name = pygame.font.match_font('arial')
         self.state = 'menu'
+        self.map_list = listdir(path.join(assets_dir, 'maps'))
 
     def game(self):
-        open_map(path.join(assets_dir, 'map2'))
         while self.state == 'game':
             self.clock.tick(30)
             for event in pygame.event.get():
@@ -44,21 +44,34 @@ class Game:
             sprites.empty()
             self.screen.fill((0, 0, 0))
         if self.state == 'menu':
-            Text('Press [ENTER] to begin a game', 0, 0, size=40, center={'width': self.WIDTH, 'height': self.HEIGHT})
+            Text('Press [ENTER] to begin a game', 0, 0, size=40, center=[self.WIDTH, self.HEIGHT])
         if self.state == 'game_over':
-            Text('Press [ENTER] To play again', 0, 0, size=40, center={'width': self.WIDTH, 'height': self.HEIGHT})
+            Text('Press [ENTER] To play again', 0, 0, size=40, center=[self.WIDTH, self.HEIGHT])
+        map_list = [MapInMenu(n) for n in listdir(path.join(assets_dir, 'maps'))]
+        cur_map = 0
         while self.state == 'menu' or self.state == 'game_over':
             self.clock.tick(30)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
-
+            map_list[cur_map].draw(self.screen)
             text_group.draw(self.screen)
             pygame.display.flip()
             key_state = pygame.key.get_pressed()
             if key_state[pygame.K_RETURN]:
                 self.state = 'game'
                 text_group.empty()
+                open_map(map_list[cur_map].path)
+            if key_state[pygame.K_RIGHT]:
+                if cur_map < len(map_list) - 1:
+                    cur_map += 1
+                else:
+                    cur_map = 0
+            if key_state[pygame.K_LEFT]:
+                if cur_map > 0:
+                    cur_map -= 1
+                else:
+                    cur_map = len(map_list) - 1
 
     def main(self):
         while True:

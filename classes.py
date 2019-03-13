@@ -12,6 +12,7 @@ blocks_group = pygame.sprite.Group()
 sprites = pygame.sprite.Group()
 player = pygame.sprite.Group()
 text_group = pygame.sprite.Group()
+maps_list = pygame.sprite.Group()
 
 
 class Block(pygame.sprite.Sprite):
@@ -202,18 +203,9 @@ class Bullet(pygame.sprite.Sprite):
             self.rect.x += self.speed
 
 
-def draw_text(surf, text, size, x, y, font_name):
-    ## selecting a cross platform font to display the score
-    font = pygame.font.Font(font_name, size)
-    text_surface = font.render(text, False, (255, 255, 255))  ## True denotes the font to be anti-aliased
-    text_rect = text_surface.get_rect()
-    text_rect.midtop = (x, y)
-    surf.blit(text_surface, text_rect)
-
-
 class Text(pygame.sprite.Sprite):
-    def __init__(self, text, x, y, size=40, max_len=16, interval=5, center=False):
-        super().__init__(text_group)
+    def __init__(self, text, x, y, size=40, max_len=16, interval=5, center=[False, False], group=text_group):
+        super().__init__(group)
         self.font = pygame.font.Font(path.join(assets_dir, 'PressStart2P-Regular.ttf'), size)
         text = self.divide_text(text, max_len)
         image_pieces = [self.font.render(i, False, (255, 255, 255)) for i in text]
@@ -222,11 +214,11 @@ class Text(pygame.sprite.Sprite):
         text_width = max([surface.get_width() for surface in image_pieces])
         self.image = pygame.Surface((text_width, text_height))
         for index, surface in enumerate(image_pieces):
-            self.image.blit(surface, (int((text_width - surface.get_width()) / 2) if center else 0,
+            self.image.blit(surface, (int((text_width - surface.get_width()) / 2) if center[1] else 0,
                                       index * (surface.get_height() + interval)))
         self.rect = self.image.get_rect()
-        self.rect.x = int(center['width'] - text_width) / 2 if center else x
-        self.rect.y = int(center['height'] - text_height) / 2 if center else y
+        self.rect.x = int(center[0] - text_width) / 2 if center[0] else x
+        self.rect.y = int(center[1] - text_height) / 2 if center[1] else y
 
     @staticmethod
     def divide_text(text, max_len):
@@ -253,3 +245,18 @@ class Text(pygame.sprite.Sprite):
                 i -= 1
             i += 1
         return n
+
+
+class MapInMenu(pygame.sprite.Sprite):
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+        self.path = path.join(assets_dir, 'maps/' + self.name)
+        self.text = Text(self.name, 0, 400, size=20, center=[800, False], group=maps_list)
+        self.image = self.text.image
+        self.rect = self.image.get_rect()
+        self.rect.x = self.text.rect.x
+        self.rect.y = self.text.rect.y
+
+    def draw(self, surface):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
