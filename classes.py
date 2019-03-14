@@ -252,7 +252,7 @@ class MapInMenu(pygame.sprite.Sprite):
         super().__init__()
         self.name = name
         self.path = path.join(assets_dir, 'maps/' + self.name)
-        self.text = Text(self.name, 0, 400, size=20, center=[800, False], group=maps_list)
+        self.text = Text(self.name, 0, 400, size=20, center=[800, False], group=maps_list, max_len=30)
         self.image = self.text.image
         self.rect = self.image.get_rect()
         self.rect.x = self.text.rect.x
